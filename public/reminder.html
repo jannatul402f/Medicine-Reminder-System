@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Medicine Reminder</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f7fb;
+            color: #333;
+        }
+
+        nav {
+            background: #2f6fed;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav h2 {
+            color: white;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: bold;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            margin: 40px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font-size: 15px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 7px;
+            background: #2f6fed;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #245ac0;
+        }
+
+        .message {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .reminder-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            margin-top: 10px;
+        }
+
+        .delete-btn:hover {
+            background: #b02a37;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <nav>
+
+        <h2>Medicine Reminder</h2>
+
+        <div>
+            <a href="dashboard.html">Dashboard</a>
+        </div>
+
+    </nav>
+
+
+    <div class="container">
+
+
+        <h1>Medicine Reminder</h1>
+
+
+        <!-- ADD REMINDER -->
+
+        <div class="card">
+
+            <h2>Set New Reminder</h2>
+
+
+            <form id="reminderForm">
+
+
+                <label for="medicineName">
+                    Select Medicine
+                </label>
+
+                <select id="medicineName" required>
+
+                    <option value="">
+                        Select Medicine
+                    </option>
+
+                </select>
+
+
+                <label for="reminderTime">
+                    Reminder Time
+                </label>
+
+                <input
+                    type="time"
+                    id="reminderTime"
+                    required
+                >
+
+
+                <label for="reminderDate">
+                    Reminder Date
+                </label>
+
+                <input
+                    type="date"
+                    id="reminderDate"
+                    required
+                >
+
+
+                <button type="submit">
+                    Save Reminder
+                </button>
+
+
+                <div
+                    id="message"
+                    class="message">
+                </div>
+
+
+            </form>
+
+        </div>
+
+
+
+        <!-- SAVED REMINDERS -->
+
+        <div class="card">
+
+            <h2>Saved Reminders</h2>
+
+            <div id="reminderList">
+                Loading reminders...
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+
+<script>
+
+
+// ========================================
+// CHECK LOGIN
+// ========================================
+
+if (
+    localStorage.getItem("loggedIn") !== "true"
+) {
+
+    window.location.href = "login.html";
+
+}
+
+
+
+// ========================================
+// ELEMENTS
+// ========================================
+
+const medicineSelect =
+    document.getElementById("medicineName");
+
+const reminderForm =
+    document.getElementById("reminderForm");
+
+const reminderList =
+    document.getElementById("reminderList");
+
+const message =
+    document.getElementById("message");
+
+
+
+// ========================================
+// LOAD MEDICINES
+// ========================================
+
+async function loadMedicines() {
+
+    try {
+
+        const response =
+            await fetch("/api/medicines");
+
+        const data =
+            await response.json();
+
+
+        medicineSelect.innerHTML =
+            `<option value="">Select Medicine</option>`;
+
+
+        if (
+            data.success &&
+            data.medicines
+        ) {
+
+            data.medicines.forEach(
+                medicine => {
+
+                    const option =
+                        document.createElement("option");
+
+                    option.value =
+                        medicine.name;
+
+                    option.textContent =
+                        medicine.name;
+
+                    medicineSelect.appendChild(
+                        option
+                    );
+
+                }
+            );
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Medicine loading error:",
+            error
+        );
+
+        message.textContent =
+            "Failed to load medicines.";
+
+    }
+
+}
+
+
+
+// ========================================
+// LOAD REMINDERS
+// ========================================
+
+async function loadReminders() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/reminders"
+            );
+
+        const data =
+            await response.json();
+
+
+        reminderList.innerHTML = "";
+
+
+        if (
+            data.success &&
+            data.reminders.length > 0
+        ) {
+
+            data.reminders.forEach(
+                reminder => {
+
+                    const div =
+                        document.createElement("div");
+
+                    div.className =
+                        "reminder-item";
+
+
+                    div.innerHTML = `
+
+                        <strong>
+                            Medicine:
+                        </strong>
+                        ${reminder.medicine_name}
+                        <br>
+
+                        <strong>
+                            Time:
+                        </strong>
+                        ${reminder.time}
+                        <br>
+
+                        <strong>
+                            Date:
+                        </strong>
+                        ${reminder.date}
+
+                        <br>
+
+                        <button
+                            class="delete-btn"
+                            onclick="deleteReminder(${reminder.id})">
+                            Delete
+                        </button>
+
+                    `;
+
+
+                    reminderList.appendChild(
+                        div
+                    );
+
+                }
+            );
+
+        } else {
+
+            reminderList.innerHTML =
+                "No reminders saved yet.";
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Reminder loading error:",
+            error
+        );
+
+        reminderList.innerHTML =
+            "Failed to load reminders.";
+
+    }
+
+}
+
+
+
+// ========================================
+// SAVE REMINDER
+// ========================================
+
+reminderForm.addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+
+        const medicine =
+            medicineSelect.value;
+
+        const time =
+            document.getElementById(
+                "reminderTime"
+            ).value;
+
+        const date =
+            document.getElementById(
+                "reminderDate"
+            ).value;
+
+
+        message.textContent =
+            "Saving reminder...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/reminders",
+                    {
+
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            medicine_name:
+                                medicine,
+
+                            time:
+                                time,
+
+                            date:
+                                date
+
+                        })
+
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (data.success) {
+
+                message.textContent =
+                    "Reminder saved successfully!";
+
+                reminderForm.reset();
+
+                await loadReminders();
+
+            } else {
+
+                message.textContent =
+                    data.message ||
+                    "Failed to save reminder.";
+
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                "Save reminder error:",
+                error
+            );
+
+            message.textContent =
+                "Server error.";
+
+        }
+
+    }
+);
+
+
+
+// ========================================
+// DELETE REMINDER
+// ========================================
+
+async function deleteReminder(id) {
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/reminders/${id}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (data.success) {
+
+            await loadReminders();
+
+        } else {
+
+            alert(
+                data.message ||
+                "Failed to delete reminder."
+            );
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Delete reminder error:",
+            error
+        );
+
+        alert(
+            "Server error."
+        );
+
+    }
+
+}
+
+
+
+// ========================================
+// START
+// ========================================
+
+loadMedicines();
+
+loadReminders();
+
+
+</script>
+
+
+</body>
+
+</html>

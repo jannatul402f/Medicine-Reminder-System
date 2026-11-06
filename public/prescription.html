@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prescription Management</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:linear-gradient(135deg,#eef8ff,#f8fbff);
+    color:#17324d;
+}
+.navbar{
+    background:#1769aa;
+    color:white;
+    padding:18px 7%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+.logo{font-size:20px;font-weight:bold}
+.navbar a{
+    color:white;
+    text-decoration:none;
+    margin-left:20px;
+}
+.container{
+    width:90%;
+    max-width:1050px;
+    margin:35px auto;
+}
+.hero{
+    background:linear-gradient(135deg,#1769aa,#48a9e8);
+    color:white;
+    padding:30px;
+    border-radius:22px;
+    margin-bottom:25px;
+}
+.card{
+    background:white;
+    padding:25px;
+    border-radius:20px;
+    box-shadow:0 10px 30px rgba(20,80,130,.1);
+    margin-bottom:25px;
+}
+input,textarea{
+    width:100%;
+    padding:13px;
+    margin:7px 0 15px;
+    border:1px solid #d5e5f0;
+    border-radius:10px;
+}
+button{
+    border:0;
+    padding:12px 18px;
+    border-radius:10px;
+    background:#1769aa;
+    color:white;
+    cursor:pointer;
+}
+button.delete{background:#dc3545}
+.item{
+    border:1px solid #e1edf5;
+    border-radius:15px;
+    padding:18px;
+    margin-top:15px;
+}
+.success{color:#16834b}
+.error{color:#c62828}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <div class="logo">💊 Medicine Reminder System</div>
+    <div>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="login.html" onclick="logout()">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+
+<div class="hero">
+    <h1>📋 Prescription Management</h1>
+    <p>Store and manage your prescriptions safely.</p>
+</div>
+
+<div class="card">
+
+<h2>Add Prescription</h2>
+
+<form id="prescriptionForm">
+
+<label>Prescription Title</label>
+<input type="text" id="title" placeholder="Example: Monthly Prescription" required>
+
+<label>Doctor Name</label>
+<input type="text" id="doctor_name" placeholder="Doctor name">
+
+<label>Date</label>
+<input type="date" id="date">
+
+<label>Notes</label>
+<textarea id="notes" placeholder="Prescription notes"></textarea>
+
+<label>Prescription File</label>
+<input type="file" id="file" accept=".jpg,.jpeg,.png,.pdf">
+
+<button type="submit">Save Prescription</button>
+
+</form>
+
+<p id="message"></p>
+
+</div>
+
+<div class="card">
+
+<h2>Saved Prescriptions</h2>
+
+<div id="list"></div>
+
+</div>
+
+</div>
+
+<script>
+
+function checkLogin(){
+
+    if(localStorage.getItem("loggedIn") !== "true"){
+        window.location.href="login.html";
+    }
+
+}
+
+checkLogin();
+
+
+function logout(){
+
+    localStorage.removeItem("loggedIn");
+    localStorage.removeItem("currentUser");
+
+}
+
+
+document.getElementById("prescriptionForm")
+.addEventListener("submit", async function(e){
+
+    e.preventDefault();
+
+    const file =
+        document.getElementById("file").files[0];
+
+    let fileData = "";
+
+    if(file){
+
+        if(file.size > 3 * 1024 * 1024){
+
+            document.getElementById("message").innerHTML =
+                "<span class='error'>File must be smaller than 3 MB.</span>";
+
+            return;
+
+        }
+
+        fileData =
+            await new Promise((resolve,reject)=>{
+
+                const reader = new FileReader();
+
+                reader.onload =
+                    () => resolve(reader.result);
+
+                reader.onerror =
+                    reject;
+
+                reader.readAsDataURL(file);
+
+            });
+
+    }
+
+    const data = {
+
+        title:
+            document.getElementById("title").value,
+
+        doctor_name:
+            document.getElementById("doctor_name").value,
+
+        date:
+            document.getElementById("date").value,
+
+        notes:
+            document.getElementById("notes").value,
+
+        file_data:
+            fileData
+
+    };
+
+
+    const response =
+        await fetch("/api/prescriptions",{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify(data)
+
+        });
+
+
+    const result =
+        await response.json();
+
+
+    document.getElementById("message").innerHTML =
+        result.success
+            ? "<span class='success'>Prescription saved successfully.</span>"
+            : "<span class='error'>"+result.message+"</span>";
+
+
+    if(result.success){
+
+        document.getElementById("prescriptionForm").reset();
+
+        loadPrescriptions();
+
+    }
+
+});
+
+
+async function loadPrescriptions(){
+
+    const response =
+        await fetch("/api/prescriptions");
+
+    const result =
+        await response.json();
+
+    const list =
+        document.getElementById("list");
+
+    list.innerHTML = "";
+
+    if(!result.prescriptions.length){
+
+        list.innerHTML =
+            "<p>No prescriptions added yet.</p>";
+
+        return;
+
+    }
+
+
+    result.prescriptions.forEach(item=>{
+
+        const div =
+            document.createElement("div");
+
+        div.className="item";
+
+        let fileButton="";
+
+        if(item.file_data){
+
+            fileButton =
+                `<button onclick="openFile('${item.id}')">
+                    View File
+                </button>`;
+
+        }
+
+
+        div.innerHTML = `
+
+            <h3>📄 ${item.title}</h3>
+
+            <p><b>Doctor:</b> ${item.doctor_name || "Not provided"}</p>
+
+            <p><b>Date:</b> ${item.date || "Not provided"}</p>
+
+            <p><b>Notes:</b> ${item.notes || "None"}</p>
+
+            ${fileButton}
+
+            <button class="delete"
+                onclick="deletePrescription(${item.id})">
+                Delete
+            </button>
+
+        `;
+
+        list.appendChild(div);
+
+    });
+
+}
+
+
+let prescriptionFiles = {};
+
+async function openFile(id){
+
+    const response =
+        await fetch("/api/prescriptions");
+
+    const result =
+        await response.json();
+
+    const item =
+        result.prescriptions.find(
+            x => x.id === id
+        );
+
+    if(item && item.file_data){
+
+        const newWindow =
+            window.open();
+
+        newWindow.document.write(
+            `<iframe src="${item.file_data}"
+             style="width:100%;height:100vh;border:0"></iframe>`
+        );
+
+    }
+
+}
+
+
+async function deletePrescription(id){
+
+    if(!confirm("Delete this prescription?")){
+        return;
+    }
+
+    await fetch(
+        "/api/prescriptions/"+id,
+        {
+            method:"DELETE"
+        }
+    );
+
+    loadPrescriptions();
+
+}
+
+
+loadPrescriptions();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Medication History</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #333;
+        }
+
+        nav {
+            background: #2c3e50;
+            padding: 15px 30px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav h2 {
+            color: white;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 18px;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+
+            box-shadow:
+                0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-top: 13px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 11px;
+
+            border: 1px solid #ccc;
+            border-radius: 6px;
+
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        button {
+            margin-top: 18px;
+            padding: 11px 20px;
+
+            border: none;
+            border-radius: 6px;
+
+            background: #3498db;
+            color: white;
+
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .message {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #ecf0f1;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            margin-top: 0;
+            padding: 7px 12px;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .taken {
+            color: green;
+            font-weight: bold;
+        }
+
+        .missed {
+            color: red;
+            font-weight: bold;
+        }
+
+        .skipped {
+            color: orange;
+            font-weight: bold;
+        }
+
+        .empty {
+            color: #777;
+            margin-top: 10px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<nav>
+
+    <h2>Medicine Reminder</h2>
+
+    <div>
+
+        <a href="dashboard.html">
+            Dashboard
+        </a>
+
+        <a href="medicine.html">
+            Medicine
+        </a>
+
+        <a href="medication-history.html">
+            History
+        </a>
+
+    </div>
+
+</nav>
+
+
+
+<div class="container">
+
+
+    <!-- ADD HISTORY -->
+
+    <div class="card">
+
+        <h1>Medication History</h1>
+
+
+        <label for="medicineName">
+            Select Medicine
+        </label>
+
+        <select id="medicineName">
+
+            <option value="">
+                Loading medicines...
+            </option>
+
+        </select>
+
+
+
+        <label for="dose">
+            Dose
+        </label>
+
+        <input
+            type="text"
+            id="dose"
+            placeholder="Example: 1 tablet"
+        >
+
+
+
+        <label for="date">
+            Date
+        </label>
+
+        <input
+            type="date"
+            id="date"
+        >
+
+
+
+        <label for="time">
+            Time
+        </label>
+
+        <input
+            type="time"
+            id="time"
+        >
+
+
+
+        <label for="status">
+            Status
+        </label>
+
+        <select id="status">
+
+            <option value="">
+                -- Select Status --
+            </option>
+
+            <option value="Taken">
+                Taken
+            </option>
+
+            <option value="Missed">
+                Missed
+            </option>
+
+            <option value="Skipped">
+                Skipped
+            </option>
+
+        </select>
+
+
+
+        <label for="notes">
+            Notes
+        </label>
+
+        <textarea
+            id="notes"
+            placeholder="Optional notes"
+        ></textarea>
+
+
+
+        <button
+            type="button"
+            onclick="saveHistory()"
+        >
+            Save Medication History
+        </button>
+
+
+        <div
+            id="message"
+            class="message"
+        ></div>
+
+    </div>
+
+
+
+    <!-- HISTORY RECORDS -->
+
+    <div class="card">
+
+        <h2>Medication History Records</h2>
+
+        <div id="historyRecords">
+            Loading records...
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+
+    // ================= LOGIN CHECK =================
+
+    if (
+        localStorage.getItem("loggedIn")
+        !== "true"
+    ) {
+
+        window.location.href =
+            "login.html";
+
+    }
+
+
+
+    // ================= LOAD MEDICINES =================
+
+    async function loadMedicines() {
+
+        const select =
+            document.getElementById(
+                "medicineName"
+            );
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/medicines"
+                );
+
+
+            const text =
+                await response.text();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Unable to load medicines"
+                );
+
+            }
+
+
+            let data;
+
+            try {
+
+                data =
+                    JSON.parse(text);
+
+            } catch (error) {
+
+                throw new Error(
+                    "Invalid server response"
+                );
+
+            }
+
+
+            const medicines =
+                Array.isArray(data)
+                ? data
+                : (data.medicines || []);
+
+
+            select.innerHTML =
+                '<option value="">-- Select Medicine --</option>';
+
+
+            if (
+                medicines.length === 0
+            ) {
+
+                select.innerHTML =
+                    '<option value="">No medicine found</option>';
+
+                return;
+
+            }
+
+
+            medicines.forEach(
+                function(medicine) {
+
+                    const option =
+                        document.createElement(
+                            "option"
+                        );
+
+                    option.value =
+                        medicine.name;
+
+                    option.textContent =
+                        medicine.name;
+
+                    select.appendChild(
+                        option
+                    );
+
+                }
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Medicine loading error:",
+                error
+            );
+
+            select.innerHTML =
+                '<option value="">Unable to load medicines</option>';
+
+        }
+
+    }
+
+
+
+    // ================= SAVE HISTORY =================
+
+    async function saveHistory() {
+
+        const medicine =
+            document.getElementById(
+                "medicineName"
+            ).value;
+
+
+        const dose =
+            document.getElementById(
+                "dose"
+            ).value.trim();
+
+
+        const date =
+            document.getElementById(
+                "date"
+            ).value;
+
+
+        const time =
+            document.getElementById(
+                "time"
+            ).value;
+
+
+        const status =
+            document.getElementById(
+                "status"
+            ).value;
+
+
+        const notes =
+            document.getElementById(
+                "notes"
+            ).value.trim();
+
+
+
+        // Validation
+
+        if (!medicine) {
+
+            showMessage(
+                "Please select a medicine.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (!dose) {
+
+            showMessage(
+                "Please enter the dose.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (!date) {
+
+            showMessage(
+                "Please select the date.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (!time) {
+
+            showMessage(
+                "Please select the time.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (!status) {
+
+            showMessage(
+                "Please select the status.",
+                "error"
+            );
+
+            return;
+        }
+
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/medication-history",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            medicine_name:
+                                medicine,
+
+                            dose:
+                                dose,
+
+                            date:
+                                date,
+
+                            time:
+                                time,
+
+                            status:
+                                status,
+
+                            notes:
+                                notes
+
+                        })
+
+                    }
+                );
+
+
+            const text =
+                await response.text();
+
+
+            let data;
+
+            try {
+
+                data =
+                    JSON.parse(text);
+
+            } catch (error) {
+
+                throw new Error(
+                    "Invalid server response"
+                );
+
+            }
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.message ||
+                    "Unable to save history"
+                );
+
+            }
+
+
+            showMessage(
+                data.message ||
+                "Medication history saved successfully!",
+                "success"
+            );
+
+
+            // Clear form
+
+            document.getElementById(
+                "medicineName"
+            ).value = "";
+
+
+            document.getElementById(
+                "dose"
+            ).value = "";
+
+
+            document.getElementById(
+                "date"
+            ).value = "";
+
+
+            document.getElementById(
+                "time"
+            ).value = "";
+
+
+            document.getElementById(
+                "status"
+            ).value = "";
+
+
+            document.getElementById(
+                "notes"
+            ).value = "";
+
+
+            loadHistory();
+
+
+        } catch (error) {
+
+            console.error(
+                "Save history error:",
+                error
+            );
+
+
+            showMessage(
+                "Unable to save medication history: "
+                + error.message,
+                "error"
+            );
+
+        }
+
+    }
+
+
+
+    // ================= LOAD HISTORY =================
+
+    async function loadHistory() {
+
+        const records =
+            document.getElementById(
+                "historyRecords"
+            );
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/medication-history"
+                );
+
+
+            const text =
+                await response.text();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Unable to load history"
+                );
+
+            }
+
+
+            let data;
+
+            try {
+
+                data =
+                    JSON.parse(text);
+
+            } catch (error) {
+
+                throw new Error(
+                    "Invalid server response"
+                );
+
+            }
+
+
+            const history =
+                data.history || [];
+
+
+            if (
+                history.length === 0
+            ) {
+
+                records.innerHTML =
+                    '<p class="empty">No medication history found.</p>';
+
+                return;
+
+            }
+
+
+
+            let html = `
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Medicine</th>
+
+                            <th>Dose</th>
+
+                            <th>Date</th>
+
+                            <th>Time</th>
+
+                            <th>Status</th>
+
+                            <th>Notes</th>
+
+                            <th>Action</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+            `;
+
+
+
+            history.forEach(
+                function(item) {
+
+                    let statusClass =
+                        "";
+
+
+                    if (
+                        item.status
+                        === "Taken"
+                    ) {
+
+                        statusClass =
+                            "taken";
+
+                    }
+                    else if (
+                        item.status
+                        === "Missed"
+                    ) {
+
+                        statusClass =
+                            "missed";
+
+                    }
+                    else {
+
+                        statusClass =
+                            "skipped";
+
+                    }
+
+
+
+                    html += `
+
+                        <tr>
+
+                            <td>
+                                ${escapeHtml(
+                                    item.medicine_name
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    item.dose
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    item.date
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    item.time
+                                )}
+                            </td>
+
+                            <td class="${statusClass}">
+                                ${escapeHtml(
+                                    item.status
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    item.notes || "-"
+                                )}
+                            </td>
+
+                            <td>
+
+                                <button
+                                    class="delete-btn"
+                                    onclick="deleteHistory(${item.id})"
+                                >
+                                    Delete
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+            );
+
+
+
+            html += `
+
+                    </tbody>
+
+                </table>
+
+            `;
+
+
+            records.innerHTML =
+                html;
+
+
+        } catch (error) {
+
+            console.error(
+                "Load history error:",
+                error
+            );
+
+
+            records.innerHTML =
+                '<p class="error">Unable to load medication history.</p>';
+
+        }
+
+    }
+
+
+
+    // ================= DELETE HISTORY =================
+
+    async function deleteHistory(id) {
+
+        if (
+            !confirm(
+                "Delete this medication history?"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/medication-history/"
+                    + id,
+                    {
+                        method: "DELETE"
+                    }
+                );
+
+
+            const text =
+                await response.text();
+
+
+            let data;
+
+            try {
+
+                data =
+                    JSON.parse(text);
+
+            } catch (error) {
+
+                throw new Error(
+                    "Invalid server response"
+                );
+
+            }
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.message ||
+                    "Unable to delete history"
+                );
+
+            }
+
+
+            showMessage(
+                "Medication history deleted successfully.",
+                "success"
+            );
+
+
+            loadHistory();
+
+
+        } catch (error) {
+
+            console.error(
+                "Delete history error:",
+                error
+            );
+
+
+            showMessage(
+                "Unable to delete medication history.",
+                "error"
+            );
+
+        }
+
+    }
+
+
+
+    // ================= MESSAGE =================
+
+    function showMessage(
+        message,
+        type
+    ) {
+
+        const messageDiv =
+            document.getElementById(
+                "message"
+            );
+
+
+        messageDiv.textContent =
+            message;
+
+
+        messageDiv.className =
+            "message " + type;
+
+    }
+
+
+
+    // ================= HTML SECURITY =================
+
+    function escapeHtml(value) {
+
+        const div =
+            document.createElement(
+                "div"
+            );
+
+
+        div.textContent =
+            value == null
+            ? ""
+            : value;
+
+
+        return div.innerHTML;
+
+    }
+
+
+
+    // ================= START =================
+
+    loadMedicines();
+
+    loadHistory();
+
+
+</script>
+
+
+</body>
+
+</html>

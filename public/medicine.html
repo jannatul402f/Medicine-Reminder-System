@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Medicine Profile - Medicine Reminder</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+
+        body {
+            background: #eef7fc;
+            color: #1f3c4d;
+        }
+
+
+        nav {
+            background: #2876aa;
+            padding: 18px 60px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            color: white;
+        }
+
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+        }
+
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+
+            margin: 40px auto;
+        }
+
+
+        h1 {
+            text-align: center;
+
+            color: #2876aa;
+
+            margin-bottom: 30px;
+        }
+
+
+        .form-box,
+        .medicine-box {
+            background: white;
+
+            padding: 25px;
+
+            border-radius: 12px;
+
+            box-shadow:
+                0 5px 18px rgba(0,0,0,0.08);
+
+            margin-bottom: 25px;
+        }
+
+
+        h2 {
+            color: #2876aa;
+
+            margin-bottom: 20px;
+        }
+
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+
+        label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-weight: bold;
+        }
+
+
+        input,
+        textarea {
+            width: 100%;
+
+            padding: 11px;
+
+            border: 1px solid #ccc;
+
+            border-radius: 7px;
+
+            font-size: 15px;
+        }
+
+
+        textarea {
+            min-height: 80px;
+
+            resize: vertical;
+        }
+
+
+        button {
+            padding: 11px 20px;
+
+            border: none;
+
+            border-radius: 7px;
+
+            background: #2876aa;
+
+            color: white;
+
+            cursor: pointer;
+
+            font-size: 15px;
+        }
+
+
+        button:hover {
+            background: #1f628f;
+        }
+
+
+        .message {
+            margin-top: 15px;
+
+            text-align: center;
+        }
+
+
+        .medicine-item {
+            border: 1px solid #ddd;
+
+            padding: 18px;
+
+            border-radius: 10px;
+
+            margin-bottom: 15px;
+        }
+
+
+        .medicine-item h3 {
+            color: #2876aa;
+
+            margin-bottom: 10px;
+        }
+
+
+        .medicine-item p {
+            margin-bottom: 7px;
+
+            color: #555;
+        }
+
+
+        .delete-btn {
+            background: #dc3545;
+
+            margin-top: 10px;
+        }
+
+
+        .delete-btn:hover {
+            background: #b02a37;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <nav>
+
+        <div class="logo">
+            💊 Medicine Reminder System
+        </div>
+
+
+        <div class="nav-links">
+
+            <a href="dashboard.html">
+                ← Dashboard
+            </a>
+
+        </div>
+
+    </nav>
+
+
+
+    <div class="container">
+
+
+        <h1>
+            Medicine Profile
+        </h1>
+
+
+        <!-- ADD MEDICINE -->
+
+        <div class="form-box">
+
+            <h2>
+                Add Medicine
+            </h2>
+
+
+            <form id="medicineForm">
+
+
+                <div class="form-group">
+
+                    <label for="name">
+                        Medicine Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="name"
+                        placeholder="Enter medicine name"
+                        required
+                    >
+
+                </div>
+
+
+
+                <div class="form-group">
+
+                    <label for="type">
+                        Medicine Type
+                    </label>
+
+                    <input
+                        type="text"
+                        id="type"
+                        placeholder="Tablet / Syrup / Capsule"
+                        required
+                    >
+
+                </div>
+
+
+
+                <div class="form-group">
+
+                    <label for="description">
+                        Description
+                    </label>
+
+                    <textarea
+                        id="description"
+                        placeholder="Enter medicine description"
+                    ></textarea>
+
+                </div>
+
+
+
+                <div class="form-group">
+
+                    <label for="instructions">
+                        Instructions
+                    </label>
+
+                    <textarea
+                        id="instructions"
+                        placeholder="Example: Take after meal"
+                    ></textarea>
+
+                </div>
+
+
+
+                <button type="submit">
+                    Add Medicine
+                </button>
+
+
+            </form>
+
+
+            <div
+                id="message"
+                class="message"
+            ></div>
+
+        </div>
+
+
+
+        <!-- MEDICINE LIST -->
+
+        <div class="medicine-box">
+
+            <h2>
+                My Medicines
+            </h2>
+
+
+            <div id="medicineList">
+                Loading medicines...
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+
+    <script>
+
+
+        // ========================================
+        // LOGIN CHECK
+        // ========================================
+
+        if (
+            localStorage.getItem("loggedIn")
+            !== "true"
+        ) {
+
+            alert("Please login first.");
+
+            window.location.href =
+                "login.html";
+
+        }
+
+
+
+        // ========================================
+        // LOAD MEDICINES
+        // ========================================
+
+        async function loadMedicines() {
+
+            const list =
+                document.getElementById(
+                    "medicineList"
+                );
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/medicines"
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!data.success) {
+
+                    list.innerHTML =
+                        "<p>Unable to load medicines.</p>";
+
+                    return;
+
+                }
+
+
+                if (
+                    data.medicines.length === 0
+                ) {
+
+                    list.innerHTML =
+                        "<p>No medicines added yet.</p>";
+
+                    return;
+
+                }
+
+
+                list.innerHTML = "";
+
+
+                data.medicines.forEach(
+                    function(medicine) {
+
+                        const item =
+                            document.createElement(
+                                "div"
+                            );
+
+
+                        item.className =
+                            "medicine-item";
+
+
+                        item.innerHTML = `
+
+                            <h3>
+                                ${medicine.name}
+                            </h3>
+
+                            <p>
+                                <strong>Type:</strong>
+                                ${medicine.type || "N/A"}
+                            </p>
+
+                            <p>
+                                <strong>Description:</strong>
+                                ${medicine.description || "N/A"}
+                            </p>
+
+                            <p>
+                                <strong>Instructions:</strong>
+                                ${medicine.instructions || "N/A"}
+                            </p>
+
+                            <button
+                                class="delete-btn"
+                                onclick="deleteMedicine(${medicine.id})"
+                            >
+                                Delete
+                            </button>
+
+                        `;
+
+
+                        list.appendChild(item);
+
+                    }
+                );
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                list.innerHTML =
+                    "<p>Server connection error.</p>";
+
+            }
+
+        }
+
+
+
+        // ========================================
+        // ADD MEDICINE
+        // ========================================
+
+        document
+            .getElementById("medicineForm")
+            .addEventListener(
+                "submit",
+                async function(event) {
+
+                    event.preventDefault();
+
+
+                    const name =
+                        document
+                            .getElementById("name")
+                            .value
+                            .trim();
+
+
+                    const type =
+                        document
+                            .getElementById("type")
+                            .value
+                            .trim();
+
+
+                    const description =
+                        document
+                            .getElementById("description")
+                            .value
+                            .trim();
+
+
+                    const instructions =
+                        document
+                            .getElementById("instructions")
+                            .value
+                            .trim();
+
+
+                    const message =
+                        document.getElementById(
+                            "message"
+                        );
+
+
+                    try {
+
+                        const response =
+                            await fetch(
+                                "/api/medicines",
+                                {
+                                    method: "POST",
+
+                                    headers: {
+                                        "Content-Type":
+                                            "application/json"
+                                    },
+
+                                    body:
+                                        JSON.stringify({
+
+                                            name:
+                                                name,
+
+                                            type:
+                                                type,
+
+                                            description:
+                                                description,
+
+                                            instructions:
+                                                instructions
+
+                                        })
+                                }
+                            );
+
+
+                        const data =
+                            await response.json();
+
+
+                        if (data.success) {
+
+                            message.textContent =
+                                "Medicine added successfully!";
+
+                            message.style.color =
+                                "green";
+
+
+                            document
+                                .getElementById(
+                                    "medicineForm"
+                                )
+                                .reset();
+
+
+                            loadMedicines();
+
+
+                        } else {
+
+                            message.textContent =
+                                data.message;
+
+                            message.style.color =
+                                "red";
+
+                        }
+
+
+                    } catch (error) {
+
+                        console.error(error);
+
+                        message.textContent =
+                            "Something went wrong.";
+
+                        message.style.color =
+                            "red";
+
+                    }
+
+                }
+            );
+
+
+
+        // ========================================
+        // DELETE MEDICINE
+        // ========================================
+
+        async function deleteMedicine(id) {
+
+            if (
+                !confirm(
+                    "Are you sure you want to delete this medicine?"
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `/api/medicines/${id}`,
+                        {
+                            method: "DELETE"
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (data.success) {
+
+                    alert(
+                        "Medicine deleted successfully."
+                    );
+
+                    loadMedicines();
+
+                } else {
+
+                    alert(
+                        data.message
+                    );
+
+                }
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Server connection error."
+                );
+
+            }
+
+        }
+
+
+
+        // ========================================
+        // INITIAL LOAD
+        // ========================================
+
+        loadMedicines();
+
+    </script>
+
+
+</body>
+
+</html>

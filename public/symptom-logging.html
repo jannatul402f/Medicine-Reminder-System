@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symptom Logging - Medicine Reminder</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f1f8fc;
+            color: #183b56;
+        }
+
+        /* Navbar */
+        nav {
+            background: linear-gradient(135deg, #1769aa, #2995d6);
+            color: white;
+            padding: 18px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 21px;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: white;
+            padding: 9px 16px;
+            border-radius: 20px;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Main */
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 40px auto;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title h1 {
+            font-size: 32px;
+            color: #1769aa;
+            margin-bottom: 8px;
+        }
+
+        .page-title p {
+            color: #6b8496;
+        }
+
+        /* Form Card */
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 18px;
+            box-shadow: 0 8px 25px rgba(23,105,170,0.10);
+            margin-bottom: 30px;
+        }
+
+        .card h2 {
+            color: #1769aa;
+            margin-bottom: 22px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #31566e;
+        }
+
+        input,
+        select,
+        textarea {
+            padding: 13px;
+            border: 1px solid #d5e4ed;
+            border-radius: 10px;
+            outline: none;
+            font-size: 15px;
+            background: #fbfdff;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #2995d6;
+            box-shadow: 0 0 0 3px rgba(41,149,214,0.10);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .save-btn {
+            margin-top: 22px;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #1769aa, #2995d6);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 18px rgba(23,105,170,0.25);
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        /* Symptoms */
+        .symptom-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 18px rgba(0,0,0,0.07);
+            border-left: 5px solid #2995d6;
+        }
+
+        .symptom-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .symptom-header h3 {
+            color: #1769aa;
+        }
+
+        .severity {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            background: #e8f4fb;
+            color: #1769aa;
+        }
+
+        .details {
+            color: #61798a;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+
+        .delete-btn {
+            margin-top: 12px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 7px;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 35px;
+            color: #78909c;
+        }
+
+        @media (max-width: 700px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: auto;
+            }
+
+            nav {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .symptom-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<nav>
+    <div class="logo">💊 Medicine Reminder System</div>
+
+    <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="index.html">Home</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div class="page-title">
+        <h1>🩺 Symptom Logging</h1>
+        <p>Record and track your health symptoms easily</p>
+    </div>
+
+    <!-- Add Symptom -->
+    <div class="card">
+        <h2>➕ Add New Symptom</h2>
+
+        <form id="symptomForm">
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Symptom</label>
+                    <input
+                        type="text"
+                        id="symptom"
+                        placeholder="e.g. Headache"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Date</label>
+                    <input
+                        type="date"
+                        id="date"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Severity</label>
+                    <select id="severity" required>
+                        <option value="">Select severity</option>
+                        <option value="Mild">Mild</option>
+                        <option value="Moderate">Moderate</option>
+                        <option value="Severe">Severe</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Duration</label>
+                    <input
+                        type="text"
+                        id="duration"
+                        placeholder="e.g. 2 hours"
+                    >
+                </div>
+
+                <div class="form-group full">
+                    <label>Notes</label>
+                    <textarea
+                        id="notes"
+                        placeholder="Write any additional information..."
+                    ></textarea>
+                </div>
+
+            </div>
+
+            <button class="save-btn" type="submit">
+                💾 Save Symptom
+            </button>
+
+            <div id="message"></div>
+
+        </form>
+    </div>
+
+    <!-- Saved Symptoms -->
+    <div class="card">
+        <h2>📋 Saved Symptoms</h2>
+
+        <div id="symptomsList">
+            <div class="empty">Loading symptoms...</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    // Login protection
+    if (localStorage.getItem("loggedIn") !== "true") {
+        window.location.href = "login.html";
+    }
+
+    // Today's date
+    document.getElementById("date").value =
+        new Date().toISOString().split("T")[0];
+
+
+    // Load symptoms
+    async function loadSymptoms() {
+
+        const list = document.getElementById("symptomsList");
+
+        try {
+
+            const response = await fetch("/api/symptoms");
+            const data = await response.json();
+
+            if (!data.success || data.symptoms.length === 0) {
+
+                list.innerHTML = `
+                    <div class="empty">
+                        No symptoms recorded yet.
+                    </div>
+                `;
+
+                return;
+            }
+
+            list.innerHTML = "";
+
+            data.symptoms.forEach(item => {
+
+                list.innerHTML += `
+                    <div class="symptom-card">
+
+                        <div class="symptom-header">
+                            <h3>🩺 ${escapeHtml(item.symptom)}</h3>
+
+                            <span class="severity">
+                                ${escapeHtml(item.severity)}
+                            </span>
+                        </div>
+
+                        <div class="details">
+                            <strong>Date:</strong>
+                            ${escapeHtml(item.date)}
+                            <br>
+
+                            <strong>Duration:</strong>
+                            ${escapeHtml(item.duration || "Not specified")}
+                            <br>
+
+                            <strong>Notes:</strong>
+                            ${escapeHtml(item.notes || "No notes")}
+                        </div>
+
+                        <button
+                            class="delete-btn"
+                            onclick="deleteSymptom(${item.id})">
+                            🗑 Delete
+                        </button>
+
+                    </div>
+                `;
+            });
+
+        } catch (error) {
+
+            list.innerHTML = `
+                <div class="empty">
+                    Unable to load symptoms.
+                </div>
+            `;
+        }
+    }
+
+
+    // Save symptom
+    document.getElementById("symptomForm")
+        .addEventListener("submit", async function(e) {
+
+        e.preventDefault();
+
+        const message = document.getElementById("message");
+
+        const data = {
+
+            symptom: document.getElementById("symptom").value,
+            date: document.getElementById("date").value,
+            severity: document.getElementById("severity").value,
+            duration: document.getElementById("duration").value,
+            notes: document.getElementById("notes").value
+
+        };
+
+        try {
+
+            const response = await fetch("/api/symptoms", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify(data)
+
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+
+                message.style.color = "green";
+                message.textContent = "✅ Symptom saved successfully!";
+
+                document.getElementById("symptomForm").reset();
+
+                document.getElementById("date").value =
+                    new Date().toISOString().split("T")[0];
+
+                loadSymptoms();
+
+            } else {
+
+                message.style.color = "red";
+                message.textContent =
+                    result.message || "Failed to save symptom.";
+
+            }
+
+        } catch (error) {
+
+            message.style.color = "red";
+            message.textContent =
+                "❌ Server error. Please try again.";
+
+        }
+
+    });
+
+
+    // Delete symptom
+    async function deleteSymptom(id) {
+
+        if (!confirm("Are you sure you want to delete this symptom?")) {
+            return;
+        }
+
+        try {
+
+            const response = await fetch(`/api/symptoms/${id}`, {
+                method: "DELETE"
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                loadSymptoms();
+            } else {
+                alert("Failed to delete symptom.");
+            }
+
+        } catch (error) {
+
+            alert("Server error.");
+
+        }
+    }
+
+
+    // Basic HTML protection
+    function escapeHtml(text) {
+
+        if (!text) return "";
+
+        return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+
+    // Logout
+    function logout() {
+
+        localStorage.removeItem("loggedIn");
+        localStorage.removeItem("currentUser");
+
+        window.location.href = "login.html";
+    }
+
+
+    // Load when page opens
+    loadSymptoms();
+
+</script>
+
+</body>
+</html>

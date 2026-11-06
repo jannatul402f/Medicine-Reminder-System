@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Missed Dose - Medicine Reminder</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #333;
+        }
+
+        nav {
+            background: #2c3e50;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav h2 {
+            color: white;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 30px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-top: 12px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        button {
+            margin-top: 18px;
+            padding: 11px 20px;
+            border: none;
+            border-radius: 6px;
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .message {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #ecf0f1;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            margin-top: 0;
+            padding: 7px 12px;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .empty {
+            color: #777;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav>
+    <h2>Medicine Reminder</h2>
+
+    <div>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="medicine.html">Medicine</a>
+        <a href="missed-dose.html">Missed Dose</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div class="card">
+        <h1>Missed Dose</h1>
+
+        <label for="medicineName">Select Medicine</label>
+        <select id="medicineName">
+            <option value="">Loading medicines...</option>
+        </select>
+
+        <label for="missedDate">Date</label>
+        <input type="date" id="missedDate">
+
+        <label for="missedTime">Time</label>
+        <input type="time" id="missedTime">
+
+        <label for="reason">Reason</label>
+        <textarea id="reason" placeholder="Why was the dose missed?"></textarea>
+
+        <button type="button" onclick="saveMissedDose()">
+            Save Missed Dose
+        </button>
+
+        <div id="message" class="message"></div>
+    </div>
+
+
+    <div class="card">
+        <h2>Missed Dose Records</h2>
+
+        <div id="records">
+            Loading records...
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+
+    // Check login
+    if (localStorage.getItem("loggedIn") !== "true") {
+        window.location.href = "login.html";
+    }
+
+
+    // Load medicines into dropdown
+    async function loadMedicines() {
+
+        const medicineSelect = document.getElementById("medicineName");
+
+        try {
+
+            const response = await fetch("/api/medicines");
+
+            const text = await response.text();
+
+            console.log("Medicine API response:", text);
+
+            if (!response.ok) {
+                throw new Error("Unable to load medicines");
+            }
+
+            let data;
+
+            try {
+                data = JSON.parse(text);
+            } catch (error) {
+                throw new Error("Server returned invalid response");
+            }
+
+            const medicines = Array.isArray(data)
+                ? data
+                : (data.medicines || []);
+
+            medicineSelect.innerHTML =
+                '<option value="">-- Select Medicine --</option>';
+
+            if (medicines.length === 0) {
+
+                medicineSelect.innerHTML =
+                    '<option value="">No medicine found</option>';
+
+                return;
+            }
+
+            medicines.forEach(function(medicine) {
+
+                const option = document.createElement("option");
+
+                option.value = medicine.name;
+                option.textContent = medicine.name;
+
+                medicineSelect.appendChild(option);
+            });
+
+        } catch (error) {
+
+            console.error("Medicine loading error:", error);
+
+            medicineSelect.innerHTML =
+                '<option value="">Unable to load medicines</option>';
+
+            showMessage(
+                "Unable to load medicines. Please check the server.",
+                "error"
+            );
+        }
+    }
+
+
+    // Save missed dose
+    async function saveMissedDose() {
+
+        const medicine =
+            document.getElementById("medicineName").value;
+
+        const date =
+            document.getElementById("missedDate").value;
+
+        const time =
+            document.getElementById("missedTime").value;
+
+        const reason =
+            document.getElementById("reason").value.trim();
+
+
+        if (!medicine) {
+
+            showMessage(
+                "Please select a medicine.",
+                "error"
+            );
+
+            return;
+        }
+
+        if (!date) {
+
+            showMessage(
+                "Please select a date.",
+                "error"
+            );
+
+            return;
+        }
+
+        if (!time) {
+
+            showMessage(
+                "Please select a time.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        try {
+
+            const response = await fetch("/api/missed-doses", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    medicine_name: medicine,
+                    date: date,
+                    time: time,
+                    reason: reason
+                })
+            });
+
+
+            const text = await response.text();
+
+            console.log("Save API response:", text);
+
+
+            let data;
+
+            try {
+                data = JSON.parse(text);
+            } catch (error) {
+
+                throw new Error(
+                    "Server returned invalid response"
+                );
+            }
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.message ||
+                    data.error ||
+                    "Failed to save missed dose"
+                );
+            }
+
+
+            showMessage(
+                data.message ||
+                "Missed dose saved successfully!",
+                "success"
+            );
+
+
+            // Clear form
+            document.getElementById("medicineName").value = "";
+            document.getElementById("missedDate").value = "";
+            document.getElementById("missedTime").value = "";
+            document.getElementById("reason").value = "";
+
+
+            // Reload records
+            loadRecords();
+
+        } catch (error) {
+
+            console.error("Save error:", error);
+
+            showMessage(
+                "Unable to save missed dose: " + error.message,
+                "error"
+            );
+        }
+    }
+
+
+    // Load missed dose records
+    async function loadRecords() {
+
+        const recordsDiv =
+            document.getElementById("records");
+
+        try {
+
+            const response =
+                await fetch("/api/missed-doses");
+
+            const text =
+                await response.text();
+
+            console.log(
+                "Missed dose records response:",
+                text
+            );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Unable to load records"
+                );
+            }
+
+
+            let data;
+
+            try {
+
+                data = JSON.parse(text);
+
+            } catch (error) {
+
+                throw new Error(
+                    "Server returned invalid response"
+                );
+            }
+
+
+            const records = Array.isArray(data)
+                ? data
+                : (data.records || data.missedDoses || []);
+
+
+            if (records.length === 0) {
+
+                recordsDiv.innerHTML =
+                    '<p class="empty">No missed dose records found.</p>';
+
+                return;
+            }
+
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Date & Time</th>
+                            <th>Reason</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+
+            records.forEach(function(record) {
+
+                let dateTime = record.date || "";
+
+                if (record.time) {
+                    dateTime += " " + record.time;
+                }
+
+
+                html += `
+                    <tr>
+                        <td>${escapeHtml(record.medicine_name || "")}</td>
+
+                        <td>${escapeHtml(dateTime)}</td>
+
+                        <td>${escapeHtml(
+                            record.reason ||
+                            record.status ||
+                            "Missed"
+                        )}</td>
+
+                        <td>
+                            <button
+                                class="delete-btn"
+                                onclick="deleteRecord(${record.id})">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+
+            recordsDiv.innerHTML = html;
+
+
+        } catch (error) {
+
+            console.error(
+                "Load records error:",
+                error
+            );
+
+            recordsDiv.innerHTML =
+                '<p class="error">Unable to load records.</p>';
+        }
+    }
+
+
+    // Delete record
+    async function deleteRecord(id) {
+
+        if (!confirm("Delete this missed dose record?")) {
+            return;
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/missed-doses/" + id,
+                    {
+                        method: "DELETE"
+                    }
+                );
+
+
+            const text =
+                await response.text();
+
+
+            console.log(
+                "Delete API response:",
+                text
+            );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Failed to delete record"
+                );
+            }
+
+
+            loadRecords();
+
+            showMessage(
+                "Record deleted successfully.",
+                "success"
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Delete error:",
+                error
+            );
+
+            showMessage(
+                "Unable to delete record.",
+                "error"
+            );
+        }
+    }
+
+
+    // Show message
+    function showMessage(message, type) {
+
+        const messageDiv =
+            document.getElementById("message");
+
+        messageDiv.textContent = message;
+
+        messageDiv.className =
+            "message " + type;
+    }
+
+
+    // Prevent HTML injection in records
+    function escapeHtml(value) {
+
+        const div =
+            document.createElement("div");
+
+        div.textContent = value;
+
+        return div.innerHTML;
+    }
+
+
+    // Load everything when page opens
+    loadMedicines();
+    loadRecords();
+
+</script>
+
+</body>
+</html>

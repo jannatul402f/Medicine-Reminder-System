@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Dashboard - Medicine Reminder System</title>
+
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+
+        body {
+            background: #eef7fc;
+            color: #1f3c4d;
+        }
+
+
+        /* Navbar */
+
+        nav {
+            background: #2876aa;
+            padding: 18px 60px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            color: white;
+        }
+
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+
+        .nav-links a,
+        .nav-links button {
+            color: white;
+            text-decoration: none;
+
+            background: none;
+            border: none;
+
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+
+        .nav-links a:hover,
+        .nav-links button:hover {
+            text-decoration: underline;
+        }
+
+
+        /* Dashboard */
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+
+            margin: 50px auto;
+        }
+
+
+        .title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+
+        .title h1 {
+            color: #2876aa;
+            margin-bottom: 10px;
+        }
+
+
+        .title p {
+            color: #667d8b;
+        }
+
+
+        /* User Welcome */
+
+        .welcome {
+            text-align: center;
+
+            margin-bottom: 30px;
+
+            color: #2876aa;
+
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+
+        /* Cards */
+
+        .features {
+            display: grid;
+
+            grid-template-columns:
+                repeat(auto-fit, minmax(240px, 1fr));
+
+            gap: 25px;
+        }
+
+
+        .card {
+            background: white;
+
+            padding: 28px;
+
+            border-radius: 14px;
+
+            box-shadow:
+                0 5px 18px rgba(0,0,0,0.08);
+
+            text-align: center;
+
+            transition: 0.3s;
+        }
+
+
+        .card:hover {
+            transform: translateY(-5px);
+
+            box-shadow:
+                0 8px 22px rgba(0,0,0,0.12);
+        }
+
+
+        .card .icon {
+            font-size: 38px;
+
+            margin-bottom: 15px;
+        }
+
+
+        .card h3 {
+            color: #2876aa;
+
+            margin-bottom: 10px;
+        }
+
+
+        .card p {
+            color: #6b7d87;
+
+            font-size: 14px;
+
+            line-height: 1.5;
+
+            margin-bottom: 18px;
+        }
+
+
+        .card a {
+            display: inline-block;
+
+            background: #2876aa;
+
+            color: white;
+
+            text-decoration: none;
+
+            padding: 10px 20px;
+
+            border-radius: 7px;
+
+            font-size: 14px;
+        }
+
+
+        .card a:hover {
+            background: #1f628f;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- Navbar -->
+
+    <nav>
+
+        <div class="logo">
+            💊 Medicine Reminder System
+        </div>
+
+
+        <div class="nav-links">
+
+            <a href="index.html">
+                Home
+            </a>
+
+
+            <a href="dashboard.html">
+                Dashboard
+            </a>
+
+
+            <button onclick="logoutUser()">
+                Logout
+            </button>
+
+        </div>
+
+    </nav>
+
+
+
+    <!-- Dashboard -->
+
+    <div class="container">
+
+
+        <div class="title">
+
+            <h1>
+                Dashboard
+            </h1>
+
+            <p>
+                Manage all your medicine and health-related features
+                from one place.
+            </p>
+
+        </div>
+
+
+        <!-- User Name -->
+
+        <div
+            class="welcome"
+            id="welcomeMessage"
+        ></div>
+
+
+
+        <div class="features">
+
+
+            <!-- 1 -->
+
+            <div class="card">
+
+                <div class="icon">
+                    💊
+                </div>
+
+                <h3>
+                    Medicine Profile
+                </h3>
+
+                <p>
+                    Add and manage your medicine information.
+                </p>
+
+                <a href="medicine.html">
+                    Open
+                </a>
+
+            </div>
+
+
+
+            <!-- 2 -->
+
+            <div class="card">
+
+                <div class="icon">
+                    ⏰
+                </div>
+
+                <h3>
+                    Dosage Schedule
+                </h3>
+
+                <p>
+                    Set medicine dosage and taking schedule.
+                </p>
+
+                <a href="dosage.html">
+                    Open
+                </a>
+
+            </div>
+
+
+
+            <!-- 3 -->
+
+            <div class="card">
+
+                <div class="icon">
+                    🔔
+                </div>
+
+                <h3>
+                    Reminder
+                </h3>
+
+                <p>
+                    Create reminders for your medicines.
+                </p>
+
+                <a href="reminder.html">
+                    Open
+                </a>
+
+            </div>
+
+
+
+            <!-- 4 -->
+
+            <div class="card">
+
+                <div class="icon">
+                    ⚠️
+                </div>
+
+                <h3>
+                    Missed Dose
+                </h3>
+
+                <p>
+                    Track missed and completed medicine doses.
+                </p>
+
+                <a href="missed-dose.html">
+                    Open
+                </a>
+
+            </div>
+
+
+
+            <!-- 5 -->
+
+            <div class="card">
+
+                <div class="icon">
+                    📦
+                </div>
+
+                <h3>
+                    Medicine Stock
+                </h3>
+
+                <p>
+                    Track available medicine quantity.
+                </p>
+
+                <a href="medicine-stock.html">
+                    Open
+                </a>
+
+            </div>
+
+
+
+            <!-- 6 -->
+
+            <div class="card">
+
+                <div class="icon">
+                    🔄
+                </div>
+
+                <h3>
+                    Refill Reminder
+                </h3>
+
+                <p>
+                    Know when your medicine needs to be refilled.
+                </p>
+
+                <a href="refill-reminder.html">
+                    Open
+                </a>
+
+            </div>
+
+
+
+            <!-- 7 -->
+
+            <div class="card">
+
+                <div class="icon">
+                    📋
+                </div>
+
+                <h3>
+                    Medication History
+                </h3>
+
+                <p>
+                    Keep track of your previous medication records.
+                </p>
+
+                <a href="medication-history.html">
+                    Open
+                </a>
+
+            </div>
+
+
+
+            <!-- 8 -->
+
+            <div class="card">
+
+                <div class="icon">
+                    📄
+                </div>
+
+                <h3>
+                    Prescription Storage
+                </h3>
+
+                <p>
+                    Store important prescription information.
+                </p>
+
+                <a href="prescription.html">
+                    Open
+                </a>
+
+            </div>
+
+
+
+            <!-- 9 -->
+
+            <div class="card">
+
+                <div class="icon">
+                    📝
+                </div>
+
+                <h3>
+                    Symptom Logging
+                </h3>
+
+                <p>
+                    Record symptoms and health observations.
+                </p>
+
+                <a href="symptom-logging.html">
+                    Open
+                </a>
+
+            </div>
+
+
+
+            <!-- 10 -->
+
+            <div class="card">
+
+                <div class="icon">
+                    📊
+                </div>
+
+                <h3>
+                    Adherence Analytics
+                </h3>
+
+                <p>
+                    Analyze your medicine-taking performance.
+                </p>
+
+                <a href="adherence-analytics.html">
+                    Open
+                </a>
+
+            </div>
+
+
+
+            <!-- 11 -->
+
+            <div class="card">
+
+                <div class="icon">
+                    🔔
+                </div>
+
+                <h3>
+                    Notification System
+                </h3>
+
+                <p>
+                    Manage medicine notification settings.
+                </p>
+
+                <a href="notification.html">
+                    Open
+                </a>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+
+    <script>
+
+
+        // ========================================
+        // LOGIN PROTECTION
+        // ========================================
+
+        const loggedIn =
+            localStorage.getItem("loggedIn");
+
+
+        if (loggedIn !== "true") {
+
+            alert("Please login first.");
+
+            window.location.href =
+                "login.html";
+
+        }
+
+
+
+        // ========================================
+        // SHOW USER NAME
+        // ========================================
+
+        const currentUser =
+            localStorage.getItem("currentUser");
+
+
+        if (currentUser) {
+
+            document.getElementById(
+                "welcomeMessage"
+            ).textContent =
+                "Welcome, " + currentUser + "!";
+
+        }
+
+
+
+        // ========================================
+        // LOGOUT
+        // ========================================
+
+        function logoutUser() {
+
+            localStorage.removeItem(
+                "loggedIn"
+            );
+
+
+            localStorage.removeItem(
+                "currentUser"
+            );
+
+
+            alert(
+                "You have been logged out."
+            );
+
+
+            window.location.href =
+                "login.html";
+
+        }
+
+    </script>
+
+
+</body>
+
+</html>
